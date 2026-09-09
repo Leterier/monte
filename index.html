@@ -2,996 +2,510 @@
 <html lang="ru">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Монте — заказ без очереди</title>
 <meta name="description" content="Предзаказ еды в кафе «Монте» при МГИМО. Забирай по номеру, без очереди.">
-
-<!-- Telegram Mini App -->
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
-
-<!-- Tailwind (только для прототипа; для боевой версии соберём статикой) -->
-<script src="https://cdn.tailwindcss.com"></script>
-
-<!-- React + Babel -->
-<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;500;600&family=Onest:wght@400;500;600&family=Caveat:wght@600&display=swap" rel="stylesheet">
 <style>
-  html, body { margin: 0; padding: 0; background: #EFECE7; }
-  #root { min-height: 100vh; }
+:root{
+  --bg:#EFECE7; --surf:#FBFAF8; --ink:#2B2422; --soft:#6B615C;
+  --terra:#D2683C; --terraLt:#F6E5DA; --brick:#9C4A4E; --coral:#F08A7C;
+  --line:#DFD9D1; --green:#5B7A52; --bar:#7C6A9C;
+  --disp:'Unbounded','Trebuchet MS',sans-serif;
+  --sans:'Onest',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+  --scr:'Caveat',cursive;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0;background:var(--bg);font-family:var(--sans);color:var(--ink)}
+button{font:inherit;border:none;background:none;cursor:pointer;color:inherit;padding:0}
+button:focus-visible{outline:2px solid var(--terra);outline-offset:2px}
+.wrap{max-width:440px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column}
+.hd{background:var(--ink);padding:14px 20px;display:flex;align-items:center;justify-content:space-between}
+.logo{font-family:var(--disp);font-weight:600;font-size:17px;color:var(--terra);line-height:1}
+.logo small{display:block;font-family:var(--sans);font-size:8.5px;letter-spacing:3px;color:var(--coral);margin-top:3px}
+.hd span{font-size:11.5px;color:rgba(239,236,231,.55)}
+.body{flex:1;padding-bottom:8px}
+.p{padding-left:20px;padding-right:20px}
+.card{background:var(--surf);border:1px solid var(--line);border-radius:16px}
+h1.t{font-family:var(--disp);font-weight:500;font-size:24px;line-height:1.2;margin:6px 0 0}
+h2.t{font-family:var(--disp);font-weight:500;font-size:21px;margin:0}
+.h3{font-family:var(--disp);font-weight:500;font-size:15px;margin:0}
+.muted{color:var(--soft)}
+.row{display:flex;align-items:center;gap:12px}
+.btw{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
+.big{background:var(--terra);color:#FFF8F4;font-weight:600;font-size:16px;border-radius:12px;padding:15px;width:100%;text-align:center}
+.ghost{border:1px solid var(--line);background:var(--surf);border-radius:12px;padding:13px;width:100%;text-align:center;font-size:15px}
+.scroll{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none;padding-bottom:4px}
+.scroll::-webkit-scrollbar{display:none}
+.chip{border-radius:12px;flex-shrink:0;text-align:left;overflow:hidden;min-width:104px;background:var(--surf);border:1px solid var(--line)}
+.chip .in{padding:10px 12px 8px}
+.chip .tm{font-family:var(--disp);font-weight:500;font-size:15.5px}
+.chip .st{font-size:11px;margin-top:4px}
+.chip .bar{height:3px;background:var(--line)}
+.chip .bar i{display:block;height:3px;background:var(--terra)}
+.chip.on{background:var(--terra);color:#FFF8F4;border-color:var(--terra)}
+.chip.on .bar{background:rgba(255,248,244,.3)} .chip.on .bar i{background:#FFF8F4}
+.chip.peak{border-color:var(--brick)}
+.chip.off{opacity:.45;background:transparent;color:var(--soft);cursor:not-allowed}
+.pill{border-radius:999px;padding:8px 16px;flex-shrink:0;font-size:13.5px;border:1px solid var(--line);color:var(--soft);background:transparent}
+.pill.on{background:var(--ink);color:var(--bg);border-color:var(--ink);font-weight:500}
+.seg{display:flex;background:var(--surf);border:1px solid var(--line);border-radius:12px;padding:4px}
+.seg button{flex:1;border-radius:8px;padding:10px;font-size:13.5px;color:var(--soft)}
+.seg button.on{background:var(--ink);color:var(--bg);font-weight:600}
+.item{display:flex;gap:16px;padding:16px 0;border-bottom:1px solid var(--line)}
+.item .nm{font-size:16px;font-weight:500}
+.item .ds{font-size:12.5px;color:var(--soft);margin-top:4px;line-height:1.45}
+.item .pr{font-family:var(--disp);font-weight:500;font-size:13.5px}
+.plus{width:40px;height:40px;border-radius:999px;background:var(--terra);color:#FFF8F4;font-size:22px;line-height:1}
+.step{display:flex;align-items:center;gap:8px;border-radius:999px;background:var(--terra);color:#FFF8F4;padding:0 8px}
+.step button{width:28px;height:40px;font-size:20px;color:#FFF8F4}
+.step.lite{background:var(--surf);color:var(--ink);border:1px solid var(--line)}
+.step.lite button{color:var(--ink);height:36px}
+.num{width:46px;height:46px;border-radius:999px;background:var(--brick);color:#FFF6F2;font-family:var(--disp);font-weight:600;font-size:17px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.tick{background:var(--brick);border-radius:16px;overflow:hidden;color:#FFF6F2}
+.perf{height:16px;background-image:radial-gradient(circle at 8px 8px,var(--bg) 6px,transparent 6.5px);background-size:20px 16px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.cat{border-radius:12px;padding:16px;text-align:left;min-height:86px;background:var(--surf);border:1px solid var(--line)}
+nav{display:flex;background:var(--ink)}
+nav button{flex:1;height:66px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;position:relative}
+nav .lb{font-size:11.5px;color:rgba(239,236,231,.55)}
+nav button.on .lb{color:#FFF8F4;font-weight:600}
+nav button.on::before{content:"";position:absolute;top:0;left:22%;right:22%;height:2.5px;background:var(--terra)}
+.badge{position:absolute;top:-5px;right:-8px;min-width:18px;height:18px;padding:0 5px;border-radius:999px;background:var(--terra);color:#FFF8F4;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.cartbar{width:100%;display:flex;align-items:center;justify-content:space-between;padding:14px 20px;background:var(--terra);color:#FFF8F4;font-size:14.5px;font-weight:600}
+.roles{display:flex;gap:8px;padding:12px 20px 0}
+.roles button{border-radius:999px;padding:6px 14px;font-size:12.5px;border:1px solid rgba(43,36,34,.25)}
+.roles button.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.warn{border-radius:12px;padding:14px;background:#F7E7E7;border:1px solid var(--brick)}
+.info{border-radius:12px;padding:14px;background:#EFEBF4;border:1px solid var(--bar)}
+.ok{border-radius:12px;padding:16px;background:var(--green);color:#F1F5EF}
+.mt8{margin-top:8px}.mt12{margin-top:12px}.mt16{margin-top:16px}.mt24{margin-top:24px}.mt28{margin-top:28px}
+.pt20{padding-top:20px}.pt24{padding-top:24px}
+.hidden{display:none}
+@media (prefers-reduced-motion:no-preference){.rise{animation:r .3s ease-out both}}
+@keyframes r{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 </style>
 </head>
 <body>
-<div id="root"></div>
+<div class="wrap" id="app"></div>
 
-<script type="text/babel" data-presets="react">
-const { useState, useEffect, useMemo } = React;
+<script>
+(function(){
+"use strict";
+var TG = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
+var IN_TG = !!(TG && TG.initData);
+var NAME = (TG && TG.initDataUnsafe && TG.initDataUnsafe.user && TG.initDataUnsafe.user.first_name) || "Артём";
+if (TG) { try { TG.ready(); TG.expand(); } catch(e){} }
 
-/* Telegram Mini App: если открыто внутри Telegram — убираем демо-рамку */
-const TG = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
-const IN_TG = !!(TG && TG.initData);
-const TG_NAME = TG && TG.initDataUnsafe && TG.initDataUnsafe.user
-  ? TG.initDataUnsafe.user.first_name : "";
-if (TG) { TG.ready(); TG.expand(); }
+/* ---------- данные ---------- */
+var FEE = 39, NOW = 12*60+5;
+function hhmm(m){return ("0"+Math.floor(m/60)).slice(-2)+":"+("0"+(m%60)).slice(-2);}
+function toMin(t){return +t.slice(0,2)*60 + +t.slice(3);}
+function rub(v){return v.toLocaleString("ru-RU")+" ₽";}
+function plural(n,f){var a=n%10,b=n%100;if(a===1&&b!==11)return f[0];if(a>=2&&a<=4&&(b<12||b>14))return f[1];return f[2];}
+function seats(n){return n+" "+plural(n,["место","места","мест"]);}
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});}
 
+function mk(t,o){o=o||{};return{t:t,peak:!!o.peak,kCap:o.peak?20:10,kTaken:o.k||0,bCap:o.peak?25:15,bTaken:o.b||0};}
+function grid(a,b){var out=[];for(var m=toMin(a);m<=toMin(b);m+=15)out.push(mk(hhmm(m)));return out;}
 
-/* ================================================================== */
-/*  Токены — сняты с фотографий кафе                                  */
-/* ================================================================== */
-const T = {
-  bg: "#EFECE7", surface: "#FBFAF8", ink: "#2B2422", inkSoft: "#6B615C",
-  terra: "#D2683C", terraLt: "#F6E5DA", brick: "#9C4A4E", coral: "#F08A7C",
-  line: "#DFD9D1", green: "#5B7A52", bar: "#7C6A9C",
+var MORNING = grid("08:00","11:45");
+MORNING[4].bTaken=9; MORNING[5].bTaken=12; MORNING[8].kTaken=4;
+var LUNCH = [
+  mk("11:55",{peak:1,k:20,b:22}), mk("12:10",{peak:1,k:17,b:14}),
+  mk("12:25",{k:8,b:6}), mk("12:40",{k:3,b:4}), mk("12:55",{k:1,b:2}),
+  mk("13:10",{k:2,b:3}), mk("13:30",{peak:1,k:15,b:18}),
+  mk("13:45",{peak:1,k:11,b:9}), mk("14:00",{k:4,b:5}),
+  mk("14:15",{k:2,b:2}), mk("14:30",{k:1,b:1})
+];
+var EVENING = grid("14:45","18:45");
+EVENING[2].bTaken=5; EVENING[7].kTaken=3;
+
+var GROUPS=[
+  {id:"m",title:"Утро",sub:"8:00 – 11:45",slots:MORNING},
+  {id:"l",title:"Обед",sub:"11:55 – 14:30 · два пика",slots:LUNCH},
+  {id:"e",title:"День и вечер",sub:"14:45 – 18:45",slots:EVENING}
+];
+var ALL_SLOTS=[]; GROUPS.forEach(function(g){ALL_SLOTS=ALL_SLOTS.concat(g.slots);});
+function slotBy(t){for(var i=0;i<ALL_SLOTS.length;i++)if(ALL_SLOTS[i].t===t)return ALL_SLOTS[i];return null;}
+function leftOf(s,st){return st==="bar"?s.bCap-s.bTaken:s.kCap-s.kTaken;}
+
+var MENU=[
+ {cat:"Кофе",station:"bar",items:[
+  {id:"c1",name:"Капучино",price:220,desc:"Двойной эспрессо, молоко на выбор",min:3},
+  {id:"c2",name:"Латте",price:230,desc:"Эспрессо, молоко, тонкая пена",min:3},
+  {id:"c3",name:"Раф ванильный",price:260,desc:"Эспрессо, сливки, ваниль",min:4},
+  {id:"c4",name:"Американо",price:170,desc:"Двойной эспрессо, горячая вода",min:2},
+  {id:"c5",name:"Флэт уайт",price:250,desc:"Двойной эспрессо, молоко",min:3}]},
+ {cat:"Напитки",station:"bar",items:[
+  {id:"d1",name:"Апельсиновый фреш",price:290,desc:"250 мл, без сахара",min:4},
+  {id:"d2",name:"Домашний лимонад",price:260,desc:"400 мл, мята и лайм",min:3},
+  {id:"d3",name:"Молочный коктейль",price:290,desc:"Пломбир, 400 мл",min:4},
+  {id:"d4",name:"Матча латте",price:280,desc:"Матча, молоко на выбор",min:4},
+  {id:"d5",name:"Горячий шоколад",price:250,desc:"Тёмный шоколад, 250 мл",min:4}]},
+ {cat:"Завтраки",station:"kitchen",items:[
+  {id:"b1",name:"Сырники со сметаной",price:320,desc:"4 шт., сметана, ягодный соус",min:6},
+  {id:"b2",name:"Овсяная каша с бананом",price:210,desc:"Хлопья, молоко, банан, мёд",min:5},
+  {id:"b3",name:"Омлет с томатами",price:280,desc:"3 яйца, томаты, зелень, тост",min:8}]},
+ {cat:"Паста",station:"kitchen",items:[
+  {id:"p1",name:"Карбонара",price:480,desc:"Спагетти, яйцо, сливки, бекон",min:14},
+  {id:"p2",name:"Помодоро",price:340,desc:"Пенне, томаты пилати, базилик",min:12},
+  {id:"p3",name:"С курицей и грибами",price:480,desc:"Спагетти, филе, вешенки",min:14},
+  {id:"p4",name:"С креветками и томатами",price:620,desc:"Спагетти, тигровые креветки",min:16,stop:true},
+  {id:"p5",name:"С лососем и икрой тобико",price:620,desc:"Спагетти, лосось, тобико",min:16}]},
+ {cat:"Пицца",station:"kitchen",items:[
+  {id:"z1",name:"Маргарита",price:650,desc:"Томаты, моцарелла, базилик",min:14},
+  {id:"z2",name:"Чоризо",price:720,desc:"Чоризо, моцарелла, томатный соус",min:15},
+  {id:"z3",name:"С лососем и креветками",price:990,desc:"Лосось, креветки, сливки",min:17}]}
+];
+var ALL=[]; MENU.forEach(function(s){s.items.forEach(function(i){i.station=s.station;ALL.push(i);});});
+function byId(id){for(var i=0;i<ALL.length;i++)if(ALL[i].id===id)return ALL[i];return null;}
+
+var LAST={p1:1,c1:1};
+var HIST=[
+ {day:"Сегодня, 8 сентября",rows:[
+  {num:"47",t:"12:25",st:"kitchen",who:"Артём Л.",items:"1×Карбонара, 1×Капучино",food:700,state:"done",log:"создан 12:04 · принят кухней 12:11 · выдан 12:26 · подтверждён студентом"},
+  {num:"46",t:"12:10",st:"bar",who:"Алиса К.",items:"2×Латте",food:460,state:"done",log:"создан 11:58 · принят баром 12:03 · выдан 12:09 · подтверждён студентом"},
+  {num:"45",t:"12:10",st:"kitchen",who:"Марк Д.",items:"1×Помодоро",food:340,state:"done",log:"создан 11:52 · принят кухней 11:59 · выдан 12:12 · подтверждён студентом"},
+  {num:"44",t:"11:55",st:"kitchen",who:"Ника В.",items:"1×Маргарита",food:650,state:"cancel",log:"создан 11:40 · отменён кухней 11:47 · причина: закончилось тесто · возврат оформлен"}]},
+ {day:"Вчера, 7 сентября",rows:[
+  {num:"38",t:"13:45",st:"kitchen",who:"Илья Т.",items:"1×Чоризо",food:720,state:"done",log:"создан 13:20 · принят кухней 13:31 · выдан 13:46 · подтверждён студентом"},
+  {num:"37",t:"13:30",st:"bar",who:"Соня Р.",items:"1×Раф ванильный",food:260,state:"done",log:"создан 13:18 · принят баром 13:26 · выдан 13:31 · подтверждён студентом"},
+  {num:"36",t:"12:25",st:"kitchen",who:"Артём Л.",items:"1×Карбонара",food:480,state:"done",log:"создан 12:02 · принят кухней 12:12 · выдан 12:27 · подтверждён студентом"}]}
+];
+var WEEKS=[["1–7 сентября",96,38640],["8–14 сентября",118,47820],["15–21 сентября",104,41100],["22–30 сентября",94,40780]];
+
+/* ---------- состояние ---------- */
+var S={role:"student",tab:"home",cat:"Кофе",cart:{},mode:"now",slot:"12:40",
+       step:0,view:"live",filter:"all",grp:"l",hist:"47",
+       orders:[
+        {num:"45",who:"Марк Д.",at:"12:10",st:"kitchen",items:"1 × Помодоро",state:"cooking",left:5},
+        {num:"46",who:"Алиса К.",at:"12:10",st:"bar",items:"2 × Латте",state:"new",left:5},
+        {num:"47",who:"Ты",at:"12:25",st:"kitchen",items:"1 × Карбонара, 1 × Капучино",state:"new",left:20}],
+       stops:{p4:true}};
+
+function cnt(){var n=0;for(var k in S.cart)n+=S.cart[k];return n;}
+function sum(){var n=0;for(var k in S.cart)n+=byId(k).price*S.cart[k];return n;}
+function peakNow(){return NOW>=toMin("11:55")&&NOW<=toMin("12:20");}
+
+var ICO={
+ home:'<path d="M3 10.5 12 3l9 7.5"/><path d="M5.5 9.7V21h13V9.7"/>',
+ menu:'<path d="M4 6.5h16"/><path d="M4 12h16"/><path d="M4 17.5h11"/>',
+ bag:'<path d="M6 8h12l1.1 12.2H4.9L6 8z"/><path d="M9 8.4V6.2a3 3 0 0 1 6 0v2.2"/>'
 };
-const DISPLAY = "'Unbounded', 'Trebuchet MS', sans-serif";
-const SANS = "'Onest', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
-const SCRIPT = "'Caveat', cursive";
+function svg(n,c){return '<svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="'+c+'" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">'+ICO[n]+'</svg>';}
 
-/* ================================================================== */
-const NOW = 12 * 60 + 5;
-const hhmm = (m) => `${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`;
-const toMin = (t) => Number(t.slice(0, 2)) * 60 + Number(t.slice(3));
+/* ---------- слоты ---------- */
+function chip(s,st){
+ var n=leftOf(s,st),past=toMin(s.t)<NOW,full=n<=0||past,low=!full&&n<=4,on=S.slot===s.t;
+ var taken=st==="bar"?s.bTaken:s.kTaken, cap=st==="bar"?s.bCap:s.kCap;
+ var pct=Math.min(100,taken/cap*100);
+ var cls="chip"+(on?" on":"")+(full?" off":(s.peak?" peak":""));
+ var txt = past?'<span style="opacity:.7">прошло</span>'
+   : n<=0?'<span style="color:'+(on?"#FFF8F4":"var(--brick)")+';font-weight:600">мест нет</span>'
+   : low?'<span style="color:'+(on?"#FFF8F4":"var(--brick)")+';font-weight:600">ещё '+n+'</span>'
+   : '<span style="opacity:.6">свободно '+n+'</span>';
+ return '<button class="'+cls+'"'+(full?' disabled':' data-act="slot" data-v="'+s.t+'"')+'>'
+  +'<div class="in"><div class="tm">'+s.t+(s.peak&&!full?' <span style="font-size:9px;letter-spacing:.5px;color:'+(on?"#FFF8F4":"var(--brick)")+';font-weight:600">ПИК</span>':'')+'</div>'
+  +'<div class="st">'+txt+'</div></div>'
+  +'<div class="bar"><i style="width:'+pct+'%'+(low&&!on?';background:var(--brick)':'')+'"></i></div></button>';
+}
+function picker(st){
+ return GROUPS.map(function(g){
+  var open=S.grp===g.id,free=0;
+  g.slots.forEach(function(s){if(toMin(s.t)>=NOW)free+=Math.max(0,leftOf(s,st));});
+  return '<div style="border-bottom:1px solid var(--line)">'
+   +'<button data-act="grp" data-v="'+g.id+'" style="width:100%;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0;text-align:left">'
+   +'<span><span style="font-family:var(--disp);font-weight:500;font-size:14px;display:block">'+g.title+'</span>'
+   +'<span style="font-size:11.5px;color:var(--soft)">'+g.sub+'</span></span>'
+   +'<span style="font-size:11.5px;color:var(--soft);white-space:nowrap">'+(free>0?"свободно "+free:"закрыто")+' '+(open?"▴":"▾")+'</span></button>'
+   +(open?'<div class="scroll" style="padding-bottom:12px">'+g.slots.map(function(s){return chip(s,st);}).join("")+'</div>':'')
+   +'</div>';
+ }).join("");
+}
 
-const mk = (t, o = {}) => ({
-  t, peak: !!o.peak,
-  kCap: o.peak ? 20 : 10, kTaken: o.k || 0,
-  bCap: o.peak ? 25 : 15, bTaken: o.b || 0,
+/* ---------- экраны ---------- */
+function vWelcome(){
+ var st=[["Собираешь заказ","Меню то же, что на досках у раздачи. Цены те же."],
+         ["Выбираешь время","Прямо сейчас или к концу пары — на любые 15 минут."],
+         ["Забираешь по номеру","Приходишь, называешь номер, уходишь. Очередь не нужна."]];
+ return '<div class="p pt24 rise" style="padding-bottom:32px">'
+  +'<h1 style="font-family:var(--disp);font-weight:600;font-size:27px;line-height:1.2;margin:0">Обед<br>без очереди</h1>'
+  +'<p style="font-size:14.5px;color:var(--soft);margin:10px 0 0;line-height:1.5">В перерыв к раздаче стоит полкорпуса. Закажи заранее и просто забери.</p>'
+  +'<div class="mt28">'+st.map(function(x,i){
+    return '<div style="display:flex;gap:14px;padding:14px 0'+(i<2?';border-bottom:1px solid var(--line)':'')+'">'
+     +'<div style="width:26px;height:26px;border-radius:999px;background:var(--terraLt);color:var(--terra);font-family:var(--disp);font-weight:600;font-size:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0">'+(i+1)+'</div>'
+     +'<div><div style="font-size:15.5px;font-weight:500">'+x[0]+'</div>'
+     +'<div style="font-size:13px;color:var(--soft);margin-top:3px;line-height:1.45">'+x[1]+'</div></div></div>';
+   }).join("")+'</div>'
+  +'<button class="big mt28" data-act="start">Смотреть меню</button>'
+  +'<p style="font-size:12px;color:var(--soft);margin-top:12px;text-align:center;line-height:1.5">Сервисный сбор 39 ₽ за заказ. Цены на еду — как на кассе.</p></div>';
+}
+
+function vHome(){
+ var tot=0,nm=[];
+ for(var k in LAST){tot+=byId(k).price*LAST[k];nm.push(byId(k).name);}
+ var pk=peakNow(),wait=pk?18:8;
+ return '<div class="rise">'
+  +'<div class="p pt24"><div class="btw"><span class="muted" style="font-size:13.5px">Понедельник, '+hhmm(NOW)+'</span>'
+  +'<span class="muted" style="font-size:12px">кухня до 19:00</span></div>'
+  +'<h1 class="t">Привет, '+esc(NAME)+'</h1></div>'
+
+  +'<div class="p mt16"><div class="card" style="padding:20px">'
+  +'<p style="font-size:12px;color:var(--terra);font-weight:600;letter-spacing:.3px;margin:0">ТВОЙ ОБЫЧНЫЙ ЗАКАЗ</p>'
+  +'<p style="font-size:17.5px;margin:8px 0 0;line-height:1.35;font-weight:500">'+nm.join(" · ")+'</p>'
+  +'<button class="big mt16" data-act="repeat">Повторить за '+rub(tot+FEE)+'</button>'
+  +'<p style="font-size:12px;color:var(--soft);margin:10px 0 0;text-align:center">'+(S.mode==="now"?"Готово примерно к "+hhmm(NOW+wait):"К "+S.slot)+'</p>'
+  +'</div></div>'
+
+  +'<div class="p mt28"><div class="seg">'
+  +'<button class="'+(S.mode==="now"?"on":"")+'" data-act="mode" data-v="now">Прямо сейчас</button>'
+  +'<button class="'+(S.mode==="time"?"on":"")+'" data-act="mode" data-v="time">Ко времени</button></div>'
+  +(S.mode==="now"
+    ?'<div class="mt12" style="border-radius:16px;padding:16px;'+(pk?'background:#F7E7E7;border:1px solid var(--brick)':'background:var(--surf);border:1px solid var(--line)')+'">'
+     +'<div class="btw"><span style="font-family:var(--disp);font-weight:500;font-size:17px">~'+hhmm(NOW+wait)+'</span>'
+     +'<span style="font-size:12.5px;'+(pk?'color:var(--brick);font-weight:600':'color:var(--soft)')+'">'+(pk?"сейчас пик":"спокойно")+'</span></div>'
+     +'<p style="font-size:12.5px;margin:6px 0 0;line-height:1.45">'+(pk?"Все вышли с пар разом. Если не горит — возьми на 12:40, будет готово за 8 минут.":"Очереди нет, кухня свободна.")+'</p></div>'
+    :'<div class="mt8">'+picker("kitchen")+'</div>')
+  +'</div>'
+
+  +'<div class="p mt28" style="padding-bottom:32px"><p class="h3">Меню</p><div class="grid mt12">'
+  +MENU.map(function(s){var mn=Math.min.apply(null,s.items.map(function(i){return i.price;}));
+    return '<button class="cat" data-act="cat" data-v="'+s.cat+'">'
+     +'<div style="font-family:var(--disp);font-weight:500;font-size:15px">'+s.cat+'</div>'
+     +'<div style="font-size:11.5px;margin-top:6px;color:'+(s.station==="bar"?"var(--bar)":"var(--soft)")+'">'
+     +(s.station==="bar"?"бар":"кухня")+' · от '+rub(mn)+'</div></button>';}).join("")
+  +'</div></div></div>';
+}
+
+function vMenu(){
+ var sec=MENU.filter(function(s){return s.cat===S.cat;})[0];
+ return '<div class="rise" style="padding-bottom:32px">'
+  +'<div class="scroll p" style="padding-top:12px;padding-bottom:12px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--bg);z-index:5">'
+  +MENU.map(function(s){return '<button class="pill'+(S.cat===s.cat?" on":"")+'" data-act="cat" data-v="'+s.cat+'">'+s.cat+'</button>';}).join("")
+  +'</div><div class="p">'
+  +'<p style="font-size:11.5px;padding-top:16px;margin:0;color:'+(sec.station==="bar"?"var(--bar)":"var(--soft)")+'">'
+  +(sec.station==="bar"?"Готовит бар — своя очередь, обычно 3–4 минуты":"Готовит кухня")+'</p>'
+  +sec.items.map(function(it){
+    var q=S.cart[it.id]||0;
+    return '<div class="item"'+(it.stop?' style="opacity:.4"':'')+'><div style="flex:1">'
+     +'<div class="nm">'+it.name+'</div><div class="ds">'+it.desc+'</div>'
+     +'<div class="row" style="margin-top:10px;font-size:13.5px"><span class="pr">'+rub(it.price)+'</span>'
+     +'<span class="muted">'+it.min+' мин</span></div></div>'
+     +'<div style="display:flex;align-items:flex-end">'
+     +(it.stop?'<span style="font-size:12.5px;color:var(--brick)">закончилось</span>'
+       :q===0?'<button class="plus" data-act="add" data-v="'+it.id+'" aria-label="Добавить '+esc(it.name)+'">+</button>'
+       :'<div class="step"><button data-act="rem" data-v="'+it.id+'">−</button><span style="font-size:15px;min-width:12px;text-align:center;font-weight:600">'+q+'</span><button data-act="add" data-v="'+it.id+'">+</button></div>')
+     +'</div></div>';
+   }).join("")+'</div></div>';
+}
+
+function vCart(){
+ var ids=Object.keys(S.cart);
+ if(!ids.length) return '<div class="p rise" style="padding-top:64px;text-align:center">'
+  +'<p style="font-family:var(--disp);font-weight:500;font-size:19px;margin:0">Пока пусто</p>'
+  +'<p style="font-size:14px;color:var(--soft);margin-top:8px">Открой меню и собери заказ.</p></div>';
+
+ var food=sum(), barOnly=ids.every(function(i){return byId(i).station==="bar";});
+ var st=barOnly?"bar":"kitchen", ch=slotBy(S.slot), n=ch?leftOf(ch,st):0;
+ var slow=Math.max.apply(null,ids.map(function(i){return byId(i).min;}));
+ var wait=(peakNow()&&!barOnly?12:3)+slow;
+
+ return '<div class="rise" style="padding-bottom:32px">'
+  +'<div class="p pt24"><h2 class="t">Заказ</h2></div><div class="p mt12">'
+  +ids.map(function(id){var it=byId(id);
+    return '<div class="row" style="padding:14px 0;border-bottom:1px solid var(--line)"><div style="flex:1">'
+     +'<div style="font-size:15.5px;font-weight:500">'+it.name+'</div>'
+     +'<div style="font-size:12.5px;color:var(--soft);margin-top:3px">'+rub(it.price*S.cart[id])+' · '+(it.station==="bar"?"бар":"кухня")+'</div></div>'
+     +'<div class="step lite"><button data-act="rem" data-v="'+id+'">−</button>'
+     +'<span style="font-size:14.5px;min-width:12px;text-align:center">'+S.cart[id]+'</span>'
+     +'<button data-act="add" data-v="'+id+'">+</button></div></div>';}).join("")
+  +'</div>'
+  +(barOnly?'<div class="p mt16"><div class="info"><p style="font-size:13px;color:var(--bar);font-weight:600;margin:0">Только напитки — идут через бар</p>'
+    +'<p style="font-size:12.5px;margin:3px 0 0;line-height:1.45">Очередь бара отдельная от кухонной, места считаются свои.</p></div></div>':'')
+  +'<div class="p" style="padding-top:20px"><div class="seg">'
+  +'<button class="'+(S.mode==="now"?"on":"")+'" data-act="mode" data-v="now">Прямо сейчас</button>'
+  +'<button class="'+(S.mode==="time"?"on":"")+'" data-act="mode" data-v="time">Ко времени</button></div>'
+  +(S.mode==="time"?'<div class="mt8">'+picker(st)+'</div>':'')+'</div>'
+  +'<div class="p mt24"><div class="card" style="padding:16px">'
+  +'<div class="btw" style="font-size:14.5px;padding:4px 0"><span>Еда и напитки</span><span>'+rub(food)+'</span></div>'
+  +'<div class="btw muted" style="font-size:14.5px;padding:4px 0"><span>Сервис</span><span>'+rub(FEE)+'</span></div>'
+  +'<div class="btw" style="border-top:1px solid var(--line);margin-top:8px;padding-top:12px;font-family:var(--disp);font-weight:500;font-size:18px"><span>Итого</span><span>'+rub(food+FEE)+'</span></div>'
+  +'</div>'
+  +(S.mode==="time"&&ch&&n<=4&&n>0?'<p style="font-size:13px;color:var(--brick);font-weight:600;margin-top:12px;text-align:center">На '+S.slot+' осталось '+seats(n)+' — закрепится после оплаты</p>':'')
+  +'<button class="big mt16" data-act="pay">Оплатить '+rub(food+FEE)+'</button>'
+  +'<p style="font-size:12px;color:var(--soft);margin-top:10px;text-align:center">'
+  +(S.mode==="now"?"Готово примерно к "+hhmm(NOW+wait):"Заберёшь в "+S.slot)+' · окно у кассы</p></div></div>';
+}
+
+function vTicket(){
+ var steps=["Оплачен","Готовится","Можно забирать"];
+ return '<div class="p pt24 rise" style="padding-bottom:40px"><div class="tick">'
+  +'<div style="padding:32px 24px 24px;text-align:center">'
+  +'<p style="color:var(--coral);font-size:12px;font-weight:600;letter-spacing:.6px;margin:0">НАЗОВИ ЭТОТ НОМЕР НА ВЫДАЧЕ</p>'
+  +'<div style="font-family:var(--disp);font-weight:600;font-size:70px;line-height:1.1;margin-top:8px">47</div>'
+  +'<p style="opacity:.7;font-size:13.5px;margin:2px 0 0">'+(S.mode==="now"?"готовим сейчас · окно у кассы":"к "+S.slot+" · окно у кассы")+'</p></div>'
+  +'<div class="perf"></div><div style="padding:20px 24px 16px">'
+  +steps.map(function(x,i){var d=i<=S.step;
+    return '<div class="row" style="padding:8px 0"><span style="width:22px;height:22px;border-radius:999px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--brick);'
+     +(d?'background:var(--coral);border:1px solid var(--coral)':'border:1px solid rgba(255,246,242,.32)')+'">'+(d?"✓":"")+'</span>'
+     +'<span style="font-size:15px;opacity:'+(d?1:.42)+'">'+x+'</span></div>';}).join("")
+  +'</div><div style="font-family:var(--scr);font-size:34px;color:var(--coral);opacity:.32;white-space:nowrap;overflow:hidden;line-height:1;padding:0 8px 12px">монте монте монте монте монте</div></div>'
+  +(S.step===2?'<div class="ok mt16 rise"><p style="font-family:var(--disp);font-weight:500;font-size:16px;margin:0">Готово, подходи</p>'
+    +'<p style="font-size:13.5px;opacity:.9;margin:5px 0 0">Назови 47 у окна выдачи. Держим 15 минут.</p></div>':'')
+  +'<button class="ghost mt16" data-act="again">Заказать ещё</button></div>';
+}
+
+function vAdmin(){
+ var nav='<div class="scroll p pt20">'
+  +[["live","Сейчас"],["hist","История"],["rep","Отчёт"]].map(function(x){
+    return '<button class="pill'+(S.view===x[0]?" on":"")+'" data-act="view" data-v="'+x[0]+'">'+x[1]+'</button>';}).join("")+'</div>';
+
+ if(S.view==="hist"){
+  return '<div class="rise">'+nav+'<div class="p pt20" style="padding-bottom:40px">'
+   +HIST.map(function(d){
+     var paid=d.rows.filter(function(r){return r.state==="done";}).length;
+     return '<div style="margin-bottom:24px"><div class="btw">'
+      +'<p style="font-family:var(--disp);font-weight:500;font-size:14px;margin:0">'+d.day+'</p>'
+      +'<p class="muted" style="font-size:12px;margin:0">'+paid+' выдано · сбор '+rub(paid*FEE)+'</p></div>'
+      +'<div class="card mt12" style="overflow:hidden">'
+      +d.rows.map(function(r,i){
+        var op=S.hist===r.num, c=r.state==="cancel";
+        return '<div'+(i?' style="border-top:1px solid var(--line)"':'')+'>'
+         +'<button data-act="hist" data-v="'+r.num+'" style="width:100%;display:flex;align-items:center;gap:12px;padding:12px 16px;text-align:left">'
+         +'<span class="num" style="width:34px;height:34px;font-size:13px;background:'+(c?"var(--line)":r.st==="bar"?"var(--bar)":"var(--brick)")+';color:'+(c?"var(--soft)":"#FFF6F2")+'">'+r.num+'</span>'
+         +'<span style="flex:1;min-width:0"><span style="font-size:14.5px;font-weight:500;display:block">'+r.who+'</span>'
+         +'<span style="font-size:12px;color:var(--soft)">'+r.t+' · '+r.items+'</span></span>'
+         +'<span style="text-align:right;flex-shrink:0"><span style="font-family:var(--disp);font-weight:500;font-size:13.5px;display:block;'+(c?"color:var(--soft);text-decoration:line-through":"")+'">'+rub(r.food)+'</span>'
+         +'<span style="font-size:11px;color:'+(c?"var(--brick)":"var(--green)")+'">'+(c?"отменён":"+"+FEE+" ₽")+'</span></span></button>'
+         +(op?'<div style="padding:0 16px 14px 60px"><p style="font-size:11.5px;color:var(--soft);line-height:1.6;margin:0">'+r.log+'</p></div>':'')
+         +'</div>';}).join("")
+      +'</div></div>';}).join("")
+   +'<p style="font-size:12px;color:var(--soft);line-height:1.55">Заказ появляется в журнале в момент создания студентом. Кухня меняет только статус — удалить строку нельзя, отмена всегда с причиной и возвратом.</p>'
+   +'</div></div>';
+ }
+
+ if(S.view==="rep"){
+  var o=0,f=0; WEEKS.forEach(function(w){o+=w[1];f+=w[2];});
+  return '<div class="rise">'+nav+'<div class="p pt20" style="padding-bottom:40px">'
+   +'<div class="btw"><p style="font-family:var(--disp);font-weight:500;font-size:15px;margin:0">Сентябрь 2026</p><span class="muted" style="font-size:12px">период закрыт</span></div>'
+   +'<div class="mt12" style="background:var(--ink);border-radius:16px;padding:20px">'
+   +'<p style="font-size:12px;color:var(--coral);font-weight:600;letter-spacing:.5px;margin:0">СЕРВИСНЫЙ СБОР К ВЫПЛАТЕ</p>'
+   +'<p style="font-family:var(--disp);font-weight:600;font-size:34px;color:#FFF6F2;margin:6px 0 0">'+rub(o*FEE)+'</p>'
+   +'<p style="font-size:12.5px;color:rgba(255,246,242,.65);margin:4px 0 0">'+o+' выданных заказов × '+FEE+' ₽</p></div>'
+   +'<div class="card mt12" style="padding:16px">'
+   +'<div class="btw" style="font-size:14px;padding:6px 0"><span>Выручка кафе за еду</span><span style="font-family:var(--disp);font-weight:500">'+rub(f)+'</span></div>'
+   +'<div class="btw muted" style="font-size:14px;padding:6px 0"><span>Отменено кухней</span><span>7 · сбор не начислен</span></div>'
+   +'<div class="btw muted" style="font-size:14px;padding:6px 0"><span>Средний чек</span><span>'+rub(Math.round(f/o))+'</span></div></div>'
+   +'<p style="font-family:var(--disp);font-weight:500;font-size:14px;margin:20px 0 0">По неделям</p>'
+   +'<div class="card mt12" style="padding:16px">'
+   +WEEKS.map(function(w){return '<div class="btw" style="font-size:13.5px;padding:8px 0;border-bottom:1px solid var(--line)"><span>'+w[0]+'</span><span class="muted">'+w[1]+' зак. · '+rub(w[2])+'</span></div>';}).join("")
+   +'<div class="btw" style="padding-top:12px;font-family:var(--disp);font-weight:500;font-size:15px"><span>Итого</span><span>'+o+' · '+rub(f)+'</span></div></div>'
+   +'<button class="big mt16">Выгрузить смету в PDF и Excel</button>'
+   +'<p style="font-size:11.5px;color:var(--soft);margin-top:10px;line-height:1.55;text-align:center">Один и тот же файл уходит тебе и управляющему. Цифра одна — спорить не о чем.</p>'
+   +'</div></div>';
+ }
+
+ var shown=S.orders.filter(function(o){return S.filter==="all"||o.st===S.filter;});
+ return '<div class="rise" style="padding-bottom:40px">'+nav
+  +'<div class="p pt20"><h2 class="t">Заказы</h2>'
+  +'<p class="muted" style="font-size:13px;margin:5px 0 0">'+S.orders.filter(function(o){return o.state!=="done";}).length+' активных · сегодня 18 400 ₽</p>'
+  +'<div class="scroll mt12">'+[["all","Все"],["kitchen","Кухня"],["bar","Бар"]].map(function(x){
+    return '<button class="pill'+(S.filter===x[0]?" on":"")+'" data-act="filter" data-v="'+x[0]+'" style="'+(S.filter===x[0]?"background:var(--terra);border-color:var(--terra);color:#FFF8F4":"")+'">'+x[1]+'</button>';}).join("")+'</div></div>'
+  +'<div class="p mt16">'+shown.map(function(o){
+    var d=o.state==="done";
+    return '<div class="card" style="padding:16px;margin-bottom:12px;'+(d?"background:transparent;opacity:.45":(o.state==="new"?"border-color:var(--terra)":""))+'">'
+     +'<div style="display:flex;gap:12px;align-items:flex-start">'
+     +'<div class="num" style="background:'+(o.st==="bar"?"var(--bar)":"var(--brick)")+'">'+o.num+'</div>'
+     +'<div style="flex:1"><div class="btw"><span style="font-size:15.5px;font-weight:500">'+o.who+'</span>'
+     +'<span style="font-size:12.5px;white-space:nowrap;color:'+(o.left<6?"var(--brick)":"var(--soft)")+'">к '+o.at+' · '+o.left+' мин</span></div>'
+     +'<div style="font-size:14px;margin-top:4px">'+o.items+'</div></div></div>'
+     +(d?'':'<button data-act="adv" data-v="'+o.num+'" style="width:100%;border-radius:12px;margin-top:12px;padding:10px;color:#FBFAF8;font-size:14.5px;font-weight:500;background:'+(o.state==="new"?"var(--ink)":"var(--green)")+'">'
+       +(o.state==="new"?"Взять в работу":"Готово — позвать")+'</button>')
+     +'</div>';}).join("")+'</div>'
+  +'<div class="p mt12"><p class="h3">Загрузка кухни в обед</p>'
+  +'<p class="muted" style="font-size:12.5px;margin:4px 0 0">Пики 11:55–12:20 и 13:30–13:50 режутся на окна по 15 минут.</p>'
+  +'<div class="card mt12" style="padding:16px">'
+  +LUNCH.map(function(s){var n=s.kCap-s.kTaken,pct=Math.min(100,s.kTaken/s.kCap*100),hot=n<=4;
+    return '<div style="padding:6px 0"><div class="btw" style="font-size:12.5px">'
+     +'<span style="font-family:var(--disp);font-weight:500">'+s.t+(s.peak?' <span style="font-family:var(--sans);color:var(--brick);font-size:10px">ПИК</span>':'')+'</span>'
+     +'<span style="color:'+(hot?"var(--brick);font-weight:600":"var(--soft)")+'">'+s.kTaken+' / '+s.kCap+(n<=0?" · закрыто":"")+'</span></div>'
+     +'<div style="height:4px;background:var(--line);border-radius:3px;margin-top:4px"><i style="display:block;height:4px;border-radius:3px;width:'+pct+'%;background:'+(hot?"var(--brick)":"var(--terra)")+'"></i></div></div>';}).join("")
+  +'</div></div>'
+  +'<div class="p mt24"><p class="h3">Стоп-лист</p>'
+  +'<p class="muted" style="font-size:12.5px;margin:4px 0 0">Выключенное сразу пропадает у студентов.</p><div class="mt12">'
+  +ALL.slice(10,16).map(function(it){var off=!!S.stops[it.id];
+    return '<button data-act="stop" data-v="'+it.id+'" style="width:100%;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid var(--line)">'
+     +'<span style="font-size:14.5px;text-align:left;'+(off?"color:var(--soft)":"")+'">'+it.name+'</span>'
+     +'<span style="width:44px;height:26px;border-radius:999px;padding:3px;display:flex;flex-shrink:0;justify-content:'+(off?"flex-start":"flex-end")+';background:'+(off?"var(--line)":"var(--green)")+'">'
+     +'<span style="width:20px;height:20px;border-radius:999px;background:#FBFAF8"></span></span></button>';}).join("")
+  +'</div></div></div>';
+}
+
+/* ---------- сборка ---------- */
+function render(){
+ var body = S.role==="admin" ? vAdmin()
+   : S.role==="intro" ? vWelcome()
+   : S.tab==="home" ? vHome()
+   : S.tab==="menu" ? vMenu()
+   : S.tab==="cart" ? vCart() : vTicket();
+
+ var roles = IN_TG ? "" : '<div class="roles">'
+   +[["student","Студент"],["intro","Первый вход"],["admin","Кухня"]].map(function(r){
+     return '<button class="'+(S.role===r[0]?"on":"")+'" data-act="role" data-v="'+r[0]+'">'+r[1]+'</button>';}).join("")+'</div>';
+
+ var n=cnt(), nav="";
+ if(S.role==="student" && S.tab!=="ticket"){
+  nav = (n>0 && S.tab!=="cart"
+    ? '<button class="cartbar" data-act="tab" data-v="cart"><span>Перейти к заказу · '+n+'</span>'
+      +'<span style="font-family:var(--disp);font-weight:600;font-size:15px">'+rub(sum()+FEE)+'</span></button>' : "")
+   +'<nav>'+[["home","Главная","home"],["menu","Меню","menu"],["cart","Заказ","bag"]].map(function(t){
+     var on=S.tab===t[0], c=on?"var(--terra)":"rgba(239,236,231,.55)";
+     return '<button class="'+(on?"on":"")+'" data-act="tab" data-v="'+t[0]+'">'
+      +'<span style="position:relative;display:block">'+svg(t[2],c)
+      +(t[0]==="cart"&&n>0?'<span class="badge">'+n+'</span>':'')+'</span>'
+      +'<span class="lb">'+t[1]+'</span></button>';}).join("")+'</nav>';
+ }
+
+ document.getElementById("app").innerHTML =
+   roles
+   +'<div class="hd"><div class="logo">МОНТЕ<small>КАФЕ</small></div><span>МГИМО · корпус А</span></div>'
+   +'<div class="body">'+body+'</div>'+nav;
+}
+
+/* ---------- события ---------- */
+document.addEventListener("click",function(e){
+ var el=e.target.closest("[data-act]"); if(!el)return;
+ var a=el.getAttribute("data-act"), v=el.getAttribute("data-v");
+ if(a==="role"){S.role=v;S.tab="home";S.cart={};S.step=0;}
+ else if(a==="tab"){S.tab=v;}
+ else if(a==="cat"){S.cat=v;S.tab="menu";}
+ else if(a==="mode"){S.mode=v;}
+ else if(a==="slot"){S.slot=v;}
+ else if(a==="grp"){S.grp=S.grp===v?"":v;}
+ else if(a==="add"){S.cart[v]=(S.cart[v]||0)+1;}
+ else if(a==="rem"){if(--S.cart[v]<=0)delete S.cart[v];}
+ else if(a==="repeat"){S.cart={};for(var k in LAST)S.cart[k]=LAST[k];S.tab="cart";}
+ else if(a==="pay"){S.tab="ticket";S.step=0;
+   setTimeout(function(){if(S.tab==="ticket"){S.step=1;render();}},1800);
+   setTimeout(function(){if(S.tab==="ticket"){S.step=2;render();}},5200);
+   if(TG&&TG.HapticFeedback)try{TG.HapticFeedback.notificationOccurred("success");}catch(x){}}
+ else if(a==="again"){S.cart={};S.tab="home";S.step=0;}
+ else if(a==="start"){S.role="student";S.tab="menu";}
+ else if(a==="view"){S.view=v;}
+ else if(a==="filter"){S.filter=v;}
+ else if(a==="hist"){S.hist=S.hist===v?"":v;}
+ else if(a==="stop"){S.stops[v]=!S.stops[v];}
+ else if(a==="adv"){S.orders=S.orders.map(function(o){return o.num===v?
+   {num:o.num,who:o.who,at:o.at,st:o.st,items:o.items,left:o.left,state:o.state==="new"?"cooking":"done"}:o;});}
+ else return;
+ render();
 });
-const grid = (from, to) => {
-  const out = [];
-  for (let m = toMin(from); m <= toMin(to); m += 15) out.push(mk(hhmm(m)));
-  return out;
-};
 
-const MORNING = grid("08:00", "11:45");
-MORNING[4].bTaken = 9; MORNING[5].bTaken = 12; MORNING[8].kTaken = 4;
-
-const LUNCH = [
-  mk("11:55", { peak: 1, k: 20, b: 22 }), mk("12:10", { peak: 1, k: 17, b: 14 }),
-  mk("12:25", { k: 8, b: 6 }), mk("12:40", { k: 3, b: 4 }), mk("12:55", { k: 1, b: 2 }),
-  mk("13:10", { k: 2, b: 3 }), mk("13:30", { peak: 1, k: 15, b: 18 }),
-  mk("13:45", { peak: 1, k: 11, b: 9 }), mk("14:00", { k: 4, b: 5 }),
-  mk("14:15", { k: 2, b: 2 }), mk("14:30", { k: 1, b: 1 }),
-];
-
-const EVENING = grid("14:45", "18:45");
-EVENING[2].bTaken = 5; EVENING[7].kTaken = 3;
-
-const GROUPS = [
-  { id: "m", title: "Утро", sub: "8:00 – 11:45", slots: MORNING },
-  { id: "l", title: "Обед", sub: "11:55 – 14:30 · два пика", slots: LUNCH },
-  { id: "e", title: "День и вечер", sub: "14:45 – 18:45", slots: EVENING },
-];
-const ALL_SLOTS = GROUPS.flatMap((g) => g.slots);
-const slotByTime = (t) => ALL_SLOTS.find((s) => s.t === t);
-const leftOf = (s, st) => (st === "bar" ? s.bCap - s.bTaken : s.kCap - s.kTaken);
-
-const plural = (n, f) => {
-  const a = n % 10, b = n % 100;
-  if (a === 1 && b !== 11) return f[0];
-  if (a >= 2 && a <= 4 && (b < 12 || b > 14)) return f[1];
-  return f[2];
-};
-const seats = (n) => `${n} ${plural(n, ["место", "места", "мест"])}`;
-
-/* ================================================================== */
-const MENU = [
-  { cat: "Кофе", station: "bar", items: [
-    { id: "c1", name: "Капучино", price: 220, desc: "Двойной эспрессо, молоко на выбор", min: 3 },
-    { id: "c2", name: "Латте", price: 230, desc: "Эспрессо, молоко, тонкая пена", min: 3 },
-    { id: "c3", name: "Раф ванильный", price: 260, desc: "Эспрессо, сливки, ваниль", min: 4 },
-    { id: "c4", name: "Американо", price: 170, desc: "Двойной эспрессо, горячая вода", min: 2 },
-    { id: "c5", name: "Флэт уайт", price: 250, desc: "Двойной эспрессо, молоко", min: 3 },
-  ]},
-  { cat: "Напитки", station: "bar", items: [
-    { id: "d1", name: "Апельсиновый фреш", price: 290, desc: "250 мл, без сахара", min: 4 },
-    { id: "d2", name: "Домашний лимонад", price: 260, desc: "400 мл, мята и лайм", min: 3 },
-    { id: "d3", name: "Молочный коктейль", price: 290, desc: "Пломбир, 400 мл", min: 4 },
-    { id: "d4", name: "Матча латте", price: 280, desc: "Матча, молоко на выбор", min: 4 },
-    { id: "d5", name: "Горячий шоколад", price: 250, desc: "Тёмный шоколад, 250 мл", min: 4 },
-  ]},
-  { cat: "Завтраки", station: "kitchen", items: [
-    { id: "b1", name: "Сырники со сметаной", price: 320, desc: "4 шт., сметана, ягодный соус", min: 6 },
-    { id: "b2", name: "Овсяная каша с бананом", price: 210, desc: "Хлопья, молоко, банан, мёд", min: 5 },
-    { id: "b3", name: "Омлет с томатами", price: 280, desc: "3 яйца, томаты, зелень, тост", min: 8 },
-  ]},
-  { cat: "Паста", station: "kitchen", items: [
-    { id: "p1", name: "Карбонара", price: 480, desc: "Спагетти, яйцо, сливки, бекон", min: 14 },
-    { id: "p2", name: "Помодоро", price: 340, desc: "Пенне, томаты пилати, базилик", min: 12 },
-    { id: "p3", name: "С курицей и грибами", price: 480, desc: "Спагетти, филе, вешенки", min: 14 },
-    { id: "p4", name: "С креветками и томатами", price: 620, desc: "Спагетти, тигровые креветки", min: 16, stop: true },
-    { id: "p5", name: "С лососем и икрой тобико", price: 620, desc: "Спагетти, лосось, тобико", min: 16 },
-  ]},
-  { cat: "Пицца", station: "kitchen", items: [
-    { id: "z1", name: "Маргарита", price: 650, desc: "Томаты, моцарелла, базилик", min: 14 },
-    { id: "z2", name: "Чоризо", price: 720, desc: "Чоризо, моцарелла, томатный соус", min: 15 },
-    { id: "z3", name: "С лососем и креветками", price: 990, desc: "Лосось, креветки, сливки", min: 17 },
-  ]},
-];
-
-const ALL = MENU.flatMap((s) => s.items.map((i) => ({ ...i, station: s.station })));
-const byId = (id) => ALL.find((i) => i.id === id);
-const FEE = 39;
-const LAST_ORDER = { p1: 1, c1: 1 };
-
-const QUEUE = [
-  { num: "45", who: "Марк Д.", at: "12:10", st: "kitchen", items: [["Помодоро", 1]], state: "cooking", left: 5 },
-  { num: "46", who: "Алиса К.", at: "12:10", st: "bar", items: [["Латте", 2]], state: "new", left: 5 },
-  { num: "47", who: "Ты", at: "12:25", st: "kitchen", items: [["Карбонара", 1], ["Капучино", 1]], state: "new", left: 20 },
-];
-
-/* ================================================================== */
-const Ico = ({ name, c }) => {
-  const p = {
-    home: <><path d="M3 10.5 12 3l9 7.5" /><path d="M5.5 9.7V21h13V9.7" /></>,
-    menu: <><path d="M4 6.5h16" /><path d="M4 12h16" /><path d="M4 17.5h11" /></>,
-    bag: <><path d="M6 8h12l1.1 12.2H4.9L6 8z" /><path d="M9 8.4V6.2a3 3 0 0 1 6 0v2.2" /></>,
-  };
-  return (
-    <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke={c}
-         strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      {p[name]}
-    </svg>
-  );
-};
-
-const Rub = ({ v }) => <span>{v.toLocaleString("ru-RU")}&nbsp;₽</span>;
-
-function Fonts() {
-  return (
-    <style>{`
-      @import url('https://fonts.googleapis.com/css2?family=Unbounded:wght@400;500;600&family=Onest:wght@400;500;600&family=Caveat:wght@600&display=swap');
-      * { box-sizing: border-box; }
-      button { font-family: ${SANS}; cursor: pointer; border: none; background: none; }
-      button:focus-visible { outline: 2px solid ${T.terra}; outline-offset: 2px; }
-      .mk-scroll::-webkit-scrollbar { display: none; }
-      .mk-scroll { -ms-overflow-style: none; scrollbar-width: none; }
-      @keyframes mkRise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
-      .mk-rise { animation: mkRise .35s ease-out both; }
-      @media (prefers-reduced-motion: reduce) { .mk-rise { animation: none; } }
-    `}</style>
-  );
-}
-
-/* ================================================================== */
-function SlotChip({ s, on, pick, station }) {
-  const n = leftOf(s, station);
-  const past = toMin(s.t) < NOW;
-  const full = n <= 0 || past;
-  const low = !full && n <= 4;
-  const taken = station === "bar" ? s.bTaken : s.kTaken;
-  const cap = station === "bar" ? s.bCap : s.kCap;
-  const pct = Math.min(100, (taken / cap) * 100);
-
-  return (
-    <button onClick={() => !full && pick(s.t)} disabled={full}
-      aria-label={`${s.t}, ${past ? "прошло" : full ? "мест нет" : "свободно " + seats(n)}`}
-      className="rounded-xl flex-shrink-0 text-left overflow-hidden"
-      style={{
-        background: on ? T.terra : full ? "transparent" : T.surface,
-        color: on ? "#FFF8F4" : full ? T.inkSoft : T.ink,
-        border: `1px solid ${on ? T.terra : s.peak && !full ? T.brick : T.line}`,
-        minWidth: 104, cursor: full ? "not-allowed" : "pointer", opacity: full ? 0.45 : 1,
-      }}>
-      <div className="px-3 pt-2.5 pb-2">
-        <div className="flex items-baseline gap-1.5">
-          <span style={{ fontFamily: DISPLAY, fontWeight: 500, fontSize: 15.5 }}>{s.t}</span>
-          {s.peak && !full && <span style={{ fontSize: 9, letterSpacing: 0.5, color: on ? "#FFF8F4" : T.brick, fontWeight: 600 }}>ПИК</span>}
-        </div>
-        <div style={{ fontSize: 11, marginTop: 4, fontWeight: low ? 600 : 400 }}>
-          {past ? <span style={{ opacity: 0.7 }}>прошло</span>
-            : n <= 0 ? <span style={{ color: on ? "#FFF8F4" : T.brick }}>мест нет</span>
-            : low ? <span style={{ color: on ? "#FFF8F4" : T.brick }}>ещё {n}</span>
-            : <span style={{ opacity: 0.6 }}>свободно {n}</span>}
-        </div>
-      </div>
-      <div style={{ height: 3, background: on ? "rgba(255,248,244,.3)" : T.line }}>
-        <div style={{ height: 3, width: `${pct}%`, background: on ? "#FFF8F4" : low ? T.brick : T.terra }} />
-      </div>
-    </button>
-  );
-}
-
-function SlotPicker({ slot, setSlot, station }) {
-  const [open, setOpen] = useState("l");
-  return (
-    <div>
-      {GROUPS.map((g) => {
-        const isOpen = open === g.id;
-        const free = g.slots.reduce((a, s) => a + (toMin(s.t) < NOW ? 0 : Math.max(0, leftOf(s, station))), 0);
-        return (
-          <div key={g.id} style={{ borderBottom: `1px solid ${T.line}` }}>
-            <button onClick={() => setOpen(isOpen ? "" : g.id)} className="w-full flex items-center justify-between py-3 gap-3">
-              <div className="text-left">
-                <div style={{ fontFamily: DISPLAY, fontWeight: 500, fontSize: 14, color: T.ink }}>{g.title}</div>
-                <div style={{ fontSize: 11.5, color: T.inkSoft, marginTop: 2 }}>{g.sub}</div>
-              </div>
-              <span style={{ fontSize: 11.5, color: T.inkSoft, whiteSpace: "nowrap" }}>
-                {free > 0 ? `свободно ${free}` : "закрыто"} {isOpen ? "▴" : "▾"}
-              </span>
-            </button>
-            {isOpen && (
-              <div className="flex gap-2 pb-3 overflow-x-auto mk-scroll">
-                {g.slots.map((s) => <SlotChip key={s.t} s={s} on={slot === s.t} pick={setSlot} station={station} />)}
-              </div>
-            )}
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-
-/* ================================================================== */
-function Welcome({ start }) {
-  const steps = [
-    ["Собираешь заказ", "Меню то же, что на досках у раздачи. Цены те же."],
-    ["Выбираешь время", "Прямо сейчас или к концу пары — на любые 15 минут."],
-    ["Забираешь по номеру", "Приходишь, называешь номер, уходишь. Очередь не нужна."],
-  ];
-  return (
-    <div className="px-5 pt-8 pb-8 mk-rise">
-      <h1 style={{ fontFamily: DISPLAY, fontWeight: 600, fontSize: 27, color: T.ink, lineHeight: 1.2 }}>
-        Обед<br />без очереди
-      </h1>
-      <p style={{ fontSize: 14.5, color: T.inkSoft, marginTop: 10, lineHeight: 1.5 }}>
-        В перерыв к раздаче стоит полкорпуса. Закажи заранее и просто забери.
-      </p>
-      <div className="mt-7">
-        {steps.map(([t, d], i) => (
-          <div key={t} className="flex gap-3.5 py-3.5" style={{ borderBottom: i < 2 ? `1px solid ${T.line}` : "none" }}>
-            <div className="rounded-full flex items-center justify-center flex-shrink-0"
-              style={{ width: 26, height: 26, background: T.terraLt, color: T.terra, fontFamily: DISPLAY, fontWeight: 600, fontSize: 12 }}>
-              {i + 1}
-            </div>
-            <div>
-              <div style={{ fontSize: 15.5, fontWeight: 500, color: T.ink }}>{t}</div>
-              <div style={{ fontSize: 13, color: T.inkSoft, marginTop: 3, lineHeight: 1.45 }}>{d}</div>
-            </div>
-          </div>
-        ))}
-      </div>
-      <button onClick={start} className="w-full rounded-xl mt-7 py-4"
-        style={{ background: T.terra, color: "#FFF8F4", fontWeight: 600, fontSize: 16 }}>
-        Смотреть меню
-      </button>
-      <p style={{ fontSize: 12, color: T.inkSoft, marginTop: 12, textAlign: "center", lineHeight: 1.5 }}>
-        Сервисный сбор 39 ₽ за заказ. Цены на еду — как на кассе.
-      </p>
-    </div>
-  );
-}
-
-/* ================================================================== */
-function Home({ go, repeat, mode, setMode, slot, setSlot }) {
-  const total = Object.entries(LAST_ORDER).reduce((s, [id, q]) => s + byId(id).price * q, 0);
-  const names = Object.keys(LAST_ORDER).map((id) => byId(id).name).join(" · ");
-  const peakNow = NOW >= toMin("11:55") && NOW <= toMin("12:20");
-  const wait = peakNow ? 18 : 8;
-
-  return (
-    <div className="mk-rise">
-      <div className="px-5 pt-6 pb-1">
-        <div className="flex items-baseline justify-between">
-          <p style={{ color: T.inkSoft, fontSize: 13.5 }}>Понедельник, {hhmm(NOW)}</p>
-          <p style={{ color: T.inkSoft, fontSize: 12 }}>кухня до 19:00</p>
-        </div>
-        <h1 style={{ fontFamily: DISPLAY, fontWeight: 500, fontSize: 24, lineHeight: 1.2, color: T.ink, marginTop: 6 }}>
-          Привет{TG_NAME ? `, ${TG_NAME}` : ", Артём"}
-        </h1>
-      </div>
-
-      <div className="px-5 pt-4">
-        <div className="rounded-2xl p-5" style={{ background: T.surface, border: `1px solid ${T.line}` }}>
-          <p style={{ fontSize: 12, color: T.terra, fontWeight: 600, letterSpacing: 0.3 }}>ТВОЙ ОБЫЧНЫЙ ЗАКАЗ</p>
-          <p style={{ fontSize: 17.5, color: T.ink, marginTop: 8, lineHeight: 1.35, fontWeight: 500 }}>{names}</p>
-          <button onClick={repeat} className="w-full rounded-xl mt-4 py-3.5"
-            style={{ background: T.terra, color: "#FFF8F4", fontWeight: 600, fontSize: 15.5 }}>
-            Повторить за <Rub v={total + FEE} />
-          </button>
-          <p style={{ fontSize: 12, color: T.inkSoft, marginTop: 10, textAlign: "center" }}>
-            {mode === "now" ? `Готово примерно к ${hhmm(NOW + wait)}` : `К ${slot}`}
-          </p>
-        </div>
-      </div>
-
-      <div className="px-5 pt-7">
-        <div className="flex rounded-xl p-1" style={{ background: T.surface, border: `1px solid ${T.line}` }}>
-          {[["now", "Прямо сейчас"], ["time", "Ко времени"]].map(([id, lbl]) => (
-            <button key={id} onClick={() => setMode(id)} className="flex-1 rounded-lg py-2.5"
-              style={{
-                background: mode === id ? T.ink : "transparent", color: mode === id ? T.bg : T.inkSoft,
-                fontSize: 13.5, fontWeight: mode === id ? 600 : 400,
-              }}>{lbl}</button>
-          ))}
-        </div>
-
-        {mode === "now" ? (
-          <div className="rounded-2xl mt-3 p-4"
-            style={{ background: peakNow ? "#F7E7E7" : T.surface, border: `1px solid ${peakNow ? T.brick : T.line}` }}>
-            <div className="flex items-baseline justify-between">
-              <span style={{ fontFamily: DISPLAY, fontWeight: 500, fontSize: 17, color: T.ink }}>~{hhmm(NOW + wait)}</span>
-              <span style={{ fontSize: 12.5, color: peakNow ? T.brick : T.inkSoft, fontWeight: peakNow ? 600 : 400 }}>
-                {peakNow ? "сейчас пик" : "спокойно"}
-              </span>
-            </div>
-            <p style={{ fontSize: 12.5, color: T.ink, marginTop: 6, lineHeight: 1.45 }}>
-              {peakNow
-                ? "Все вышли с пар разом. Если не горит — возьми на 12:40, будет готово за 8 минут."
-                : "Очереди нет, кухня свободна."}
-            </p>
-          </div>
-        ) : (
-          <div className="mt-1"><SlotPicker slot={slot} setSlot={setSlot} station="kitchen" /></div>
-        )}
-      </div>
-
-      <div className="px-5 pt-7 pb-8">
-        <p style={{ fontFamily: DISPLAY, fontWeight: 500, fontSize: 15, color: T.ink }}>Меню</p>
-        <div className="grid grid-cols-2 gap-3 mt-3">
-          {MENU.map((s) => (
-            <button key={s.cat} onClick={() => go("menu", s.cat)} className="rounded-xl p-4 text-left"
-              style={{ background: T.surface, border: `1px solid ${T.line}`, minHeight: 86 }}>
-              <div style={{ fontFamily: DISPLAY, fontWeight: 500, fontSize: 15, color: T.ink }}>{s.cat}</div>
-              <div style={{ fontSize: 11.5, color: s.station === "bar" ? T.bar : T.inkSoft, marginTop: 6 }}>
-                {s.station === "bar" ? "бар" : "кухня"} · от <Rub v={Math.min(...s.items.map((i) => i.price))} />
-              </div>
-            </button>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* ================================================================== */
-function Menu({ cart, add, remove, openCat, setOpenCat }) {
-  const sec = MENU.find((s) => s.cat === openCat);
-  return (
-    <div className="mk-rise pb-8">
-      <div className="flex gap-2 px-5 py-3 overflow-x-auto mk-scroll sticky top-0"
-           style={{ background: T.bg, borderBottom: `1px solid ${T.line}`, zIndex: 5 }}>
-        {MENU.map((s) => {
-          const on = openCat === s.cat;
-          return (
-            <button key={s.cat} onClick={() => setOpenCat(s.cat)} className="rounded-full px-4 py-2 flex-shrink-0"
-              style={{
-                background: on ? T.ink : "transparent", color: on ? T.bg : T.inkSoft,
-                border: `1px solid ${on ? T.ink : T.line}`, fontSize: 13.5, fontWeight: on ? 500 : 400,
-              }}>{s.cat}</button>
-          );
-        })}
-      </div>
-
-      <div className="px-5 pt-2">
-        <p style={{ fontSize: 11.5, color: sec.station === "bar" ? T.bar : T.inkSoft, paddingTop: 8 }}>
-          {sec.station === "bar" ? "Готовит бар — своя очередь, обычно 3–4 минуты" : "Готовит кухня"}
-        </p>
-        {sec.items.map((it) => {
-          const q = cart[it.id] || 0;
-          return (
-            <div key={it.id} className="flex gap-4 py-4"
-                 style={{ borderBottom: `1px solid ${T.line}`, opacity: it.stop ? 0.4 : 1 }}>
-              <div className="flex-1">
-                <div style={{ fontSize: 16, fontWeight: 500, color: T.ink }}>{it.name}</div>
-                <div style={{ fontSize: 12.5, color: T.inkSoft, marginTop: 4, lineHeight: 1.45 }}>{it.desc}</div>
-                <div className="flex items-center gap-3 mt-2.5" style={{ fontSize: 13.5 }}>
-                  <span style={{ fontFamily: DISPLAY, fontWeight: 500, color: T.ink }}><Rub v={it.price} /></span>
-                  <span style={{ color: T.inkSoft }}>{it.min} мин</span>
-                </div>
-              </div>
-              <div className="flex items-end">
-                {it.stop ? <span style={{ fontSize: 12.5, color: T.brick }}>закончилось</span>
-                  : q === 0 ? (
-                    <button onClick={() => add(it.id)} className="rounded-full"
-                      style={{ width: 40, height: 40, background: T.terra, color: "#FFF8F4", fontSize: 22 }}
-                      aria-label={`Добавить ${it.name}`}>+</button>
-                  ) : (
-                    <div className="flex items-center gap-3 rounded-full px-2" style={{ background: T.terra, color: "#FFF8F4" }}>
-                      <button onClick={() => remove(it.id)} style={{ color: "#FFF8F4", width: 28, height: 40, fontSize: 20 }}>−</button>
-                      <span style={{ fontSize: 15, minWidth: 12, textAlign: "center", fontWeight: 600 }}>{q}</span>
-                      <button onClick={() => add(it.id)} style={{ color: "#FFF8F4", width: 28, height: 40, fontSize: 20 }}>+</button>
-                    </div>
-                  )}
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
-/* ================================================================== */
-function Cart({ cart, add, remove, mode, setMode, slot, setSlot, pay }) {
-  const ids = Object.keys(cart);
-  const food = ids.reduce((s, id) => s + byId(id).price * cart[id], 0);
-  const barOnly = ids.length > 0 && ids.every((id) => byId(id).station === "bar");
-  const station = barOnly ? "bar" : "kitchen";
-  const slowest = ids.length ? Math.max(...ids.map((id) => byId(id).min)) : 0;
-  const chosen = slotByTime(slot);
-  const n = chosen ? leftOf(chosen, station) : 0;
-  const peakNow = NOW >= toMin("11:55") && NOW <= toMin("12:20");
-  const wait = (peakNow && !barOnly ? 12 : 3) + slowest;
-
-  if (!ids.length)
-    return (
-      <div className="px-5 pt-16 text-center mk-rise">
-        <p style={{ fontFamily: DISPLAY, fontWeight: 500, fontSize: 19, color: T.ink }}>Пока пусто</p>
-        <p style={{ fontSize: 14, color: T.inkSoft, marginTop: 8 }}>Открой меню и собери заказ.</p>
-      </div>
-    );
-
-  return (
-    <div className="mk-rise pb-8">
-      <div className="px-5 pt-6">
-        <h2 style={{ fontFamily: DISPLAY, fontWeight: 500, fontSize: 21, color: T.ink }}>Заказ</h2>
-      </div>
-
-      <div className="px-5 pt-3">
-        {ids.map((id) => {
-          const it = byId(id);
-          return (
-            <div key={id} className="flex items-center gap-4 py-3.5" style={{ borderBottom: `1px solid ${T.line}` }}>
-              <div className="flex-1">
-                <div style={{ fontSize: 15.5, fontWeight: 500, color: T.ink }}>{it.name}</div>
-                <div style={{ fontSize: 12.5, color: T.inkSoft, marginTop: 3 }}>
-                  <Rub v={it.price * cart[id]} /> · {it.station === "bar" ? "бар" : "кухня"}
-                </div>
-              </div>
-              <div className="flex items-center gap-3 rounded-full px-2" style={{ border: `1px solid ${T.line}`, background: T.surface }}>
-                <button onClick={() => remove(id)} style={{ color: T.ink, width: 26, height: 36, fontSize: 19 }}>−</button>
-                <span style={{ fontSize: 14.5, minWidth: 12, textAlign: "center", color: T.ink }}>{cart[id]}</span>
-                <button onClick={() => add(id)} style={{ color: T.ink, width: 26, height: 36, fontSize: 19 }}>+</button>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-
-      {barOnly && (
-        <div className="px-5 pt-4">
-          <div className="rounded-xl p-3.5" style={{ background: "#EFEBF4", border: `1px solid ${T.bar}` }}>
-            <p style={{ fontSize: 13, color: T.bar, fontWeight: 600 }}>Только напитки — идут через бар</p>
-            <p style={{ fontSize: 12.5, color: T.ink, marginTop: 3, lineHeight: 1.45 }}>
-              Очередь бара отдельная от кухонной, места считаются свои.
-            </p>
-          </div>
-        </div>
-      )}
-
-      <div className="px-5 pt-5">
-        <div className="flex rounded-xl p-1" style={{ background: T.surface, border: `1px solid ${T.line}` }}>
-          {[["now", "Прямо сейчас"], ["time", "Ко времени"]].map(([id, lbl]) => (
-            <button key={id} onClick={() => setMode(id)} className="flex-1 rounded-lg py-2.5"
-              style={{
-                background: mode === id ? T.ink : "transparent", color: mode === id ? T.bg : T.inkSoft,
-                fontSize: 13.5, fontWeight: mode === id ? 600 : 400,
-              }}>{lbl}</button>
-          ))}
-        </div>
-        {mode === "time" && <div className="mt-1"><SlotPicker slot={slot} setSlot={setSlot} station={station} /></div>}
-      </div>
-
-      <div className="px-5 pt-6">
-        <div className="rounded-2xl p-4" style={{ background: T.surface, border: `1px solid ${T.line}` }}>
-          <div className="flex justify-between py-1" style={{ fontSize: 14.5, color: T.ink }}>
-            <span>Еда и напитки</span><span><Rub v={food} /></span>
-          </div>
-          <div className="flex justify-between py-1" style={{ fontSize: 14.5, color: T.inkSoft }}>
-            <span>Сервис</span><span><Rub v={FEE} /></span>
-          </div>
-          <div className="flex justify-between pt-3 mt-2"
-               style={{ borderTop: `1px solid ${T.line}`, fontFamily: DISPLAY, fontWeight: 500, fontSize: 18, color: T.ink }}>
-            <span>Итого</span><span><Rub v={food + FEE} /></span>
-          </div>
-        </div>
-
-        {mode === "time" && chosen && n <= 4 && n > 0 && (
-          <p style={{ fontSize: 13, color: T.brick, fontWeight: 600, marginTop: 12, textAlign: "center" }}>
-            На {slot} осталось {seats(n)} — закрепится после оплаты
-          </p>
-        )}
-
-        <button onClick={pay} className="w-full rounded-xl mt-4 py-4"
-          style={{ background: T.terra, color: "#FFF8F4", fontWeight: 600, fontSize: 16 }}>
-          Оплатить <Rub v={food + FEE} />
-        </button>
-        <p style={{ fontSize: 12, color: T.inkSoft, marginTop: 10, textAlign: "center" }}>
-          {mode === "now" ? `Готово примерно к ${hhmm(NOW + wait)}` : `Заберёшь в ${slot}`} · окно у кассы
-        </p>
-      </div>
-    </div>
-  );
-}
-
-/* ================================================================== */
-const STEPS = ["Оплачен", "Готовится", "Можно забирать"];
-
-function Ticket({ mode, slot, back }) {
-  const [step, setStep] = useState(0);
-  useEffect(() => {
-    const a = setTimeout(() => setStep(1), 1800);
-    const b = setTimeout(() => setStep(2), 5200);
-    return () => { clearTimeout(a); clearTimeout(b); };
-  }, []);
-
-  return (
-    <div className="px-5 pt-6 pb-10 mk-rise">
-      <div className="rounded-2xl overflow-hidden" style={{ background: T.brick }}>
-        <div className="px-6 pt-8 pb-6 text-center">
-          <p style={{ color: T.coral, fontSize: 12, fontWeight: 600, letterSpacing: 0.6 }}>
-            НАЗОВИ ЭТОТ НОМЕР НА ВЫДАЧЕ
-          </p>
-          <div style={{ fontFamily: DISPLAY, fontWeight: 600, fontSize: 70, color: "#FFF6F2", lineHeight: 1.1, marginTop: 8 }}>47</div>
-          <p style={{ color: "#FFF6F2", opacity: 0.7, fontSize: 13.5, marginTop: 2 }}>
-            {mode === "now" ? "готовим сейчас · окно у кассы" : `к ${slot} · окно у кассы`}
-          </p>
-        </div>
-
-        <div style={{ height: 16, backgroundImage: `radial-gradient(circle at 8px 8px, ${T.bg} 6px, transparent 6.5px)`, backgroundSize: "20px 16px" }} />
-
-        <div className="px-6 pt-5 pb-4">
-          {STEPS.map((s, i) => {
-            const done = i <= step;
-            return (
-              <div key={s} className="flex items-center gap-3 py-2">
-                <div className="rounded-full flex items-center justify-center"
-                  style={{
-                    width: 22, height: 22, background: done ? T.coral : "transparent",
-                    border: `1px solid ${done ? T.coral : "rgba(255,246,242,.32)"}`,
-                    color: T.brick, fontSize: 12, fontWeight: 700,
-                  }}>{done ? "✓" : ""}</div>
-                <span style={{ color: "#FFF6F2", opacity: done ? 1 : 0.42, fontSize: 15 }}>{s}</span>
-              </div>
-            );
-          })}
-        </div>
-
-        <div className="px-2 pb-3" style={{ fontFamily: SCRIPT, fontSize: 34, color: T.coral, opacity: 0.32, whiteSpace: "nowrap", overflow: "hidden", lineHeight: 1 }}>
-          монте монте монте монте монте
-        </div>
-      </div>
-
-      {step === 2 && (
-        <div className="rounded-xl mt-4 p-4 mk-rise" style={{ background: T.green, color: "#F1F5EF" }}>
-          <p style={{ fontFamily: DISPLAY, fontWeight: 500, fontSize: 16 }}>Готово, подходи</p>
-          <p style={{ fontSize: 13.5, opacity: 0.9, marginTop: 5 }}>Назови 47 у окна выдачи. Держим 15 минут.</p>
-        </div>
-      )}
-
-      <button onClick={back} className="w-full rounded-xl mt-4 py-3.5"
-        style={{ border: `1px solid ${T.line}`, color: T.ink, fontSize: 15, background: T.surface }}>
-        Заказать ещё
-      </button>
-    </div>
-  );
-}
-
-/* ================================================================== */
-/*  История — один журнал на две стороны                              */
-/* ================================================================== */
-const HISTORY = [
-  { day: "Сегодня, 8 сентября", rows: [
-    { num: "47", t: "12:25", st: "kitchen", who: "Артём Л.", items: [["Карбонара", 1], ["Капучино", 1]], food: 700, state: "done", log: "создан 12:04 · принят кухней 12:11 · выдан 12:26 · подтверждён студентом" },
-    { num: "46", t: "12:10", st: "bar", who: "Алиса К.", items: [["Латте", 2]], food: 460, state: "done", log: "создан 11:58 · принят баром 12:03 · выдан 12:09 · подтверждён студентом" },
-    { num: "45", t: "12:10", st: "kitchen", who: "Марк Д.", items: [["Помодоро", 1]], food: 340, state: "done", log: "создан 11:52 · принят кухней 11:59 · выдан 12:12 · подтверждён студентом" },
-    { num: "44", t: "11:55", st: "kitchen", who: "Ника В.", items: [["Маргарита", 1]], food: 650, state: "cancel", log: "создан 11:40 · отменён кухней 11:47 · причина: закончилось тесто · возврат оформлен" },
-  ]},
-  { day: "Вчера, 7 сентября", rows: [
-    { num: "38", t: "13:45", st: "kitchen", who: "Илья Т.", items: [["Чоризо", 1]], food: 720, state: "done", log: "создан 13:20 · принят кухней 13:31 · выдан 13:46 · подтверждён студентом" },
-    { num: "37", t: "13:30", st: "bar", who: "Соня Р.", items: [["Раф ванильный", 1]], food: 260, state: "done", log: "создан 13:18 · принят баром 13:26 · выдан 13:31 · подтверждён студентом" },
-    { num: "36", t: "12:25", st: "kitchen", who: "Артём Л.", items: [["Карбонара", 1]], food: 480, state: "done", log: "создан 12:02 · принят кухней 12:12 · выдан 12:27 · подтверждён студентом" },
-  ]},
-];
-
-function History() {
-  const [open, setOpen] = useState("47");
-  return (
-    <div className="px-5 pt-5 pb-10 mk-rise">
-      {HISTORY.map((d) => {
-        const paid = d.rows.filter((r) => r.state === "done");
-        return (
-          <div key={d.day} className="mb-6">
-            <div className="flex items-baseline justify-between">
-              <p style={{ fontFamily: DISPLAY, fontWeight: 500, fontSize: 14, color: T.ink }}>{d.day}</p>
-              <p style={{ fontSize: 12, color: T.inkSoft }}>{paid.length} выдано · сбор <Rub v={paid.length * FEE} /></p>
-            </div>
-            <div className="mt-2.5 rounded-2xl overflow-hidden" style={{ border: `1px solid ${T.line}`, background: T.surface }}>
-              {d.rows.map((r, i) => {
-                const isOpen = open === r.num;
-                const cancel = r.state === "cancel";
-                return (
-                  <div key={r.num} style={{ borderTop: i ? `1px solid ${T.line}` : "none" }}>
-                    <button onClick={() => setOpen(isOpen ? "" : r.num)} className="w-full flex items-center gap-3 px-4 py-3 text-left">
-                      <span className="rounded-full flex items-center justify-center flex-shrink-0"
-                        style={{
-                          width: 34, height: 34, background: cancel ? T.line : r.st === "bar" ? T.bar : T.brick,
-                          color: cancel ? T.inkSoft : "#FFF6F2", fontFamily: DISPLAY, fontWeight: 600, fontSize: 13,
-                        }}>{r.num}</span>
-                      <span className="flex-1" style={{ minWidth: 0 }}>
-                        <span style={{ fontSize: 14.5, color: T.ink, fontWeight: 500, display: "block" }}>{r.who}</span>
-                        <span style={{ fontSize: 12, color: T.inkSoft }}>
-                          {r.t} · {r.items.map(([n, q]) => `${q}×${n}`).join(", ")}
-                        </span>
-                      </span>
-                      <span className="text-right flex-shrink-0">
-                        <span style={{
-                          fontFamily: DISPLAY, fontWeight: 500, fontSize: 13.5, display: "block",
-                          color: cancel ? T.inkSoft : T.ink, textDecoration: cancel ? "line-through" : "none",
-                        }}><Rub v={r.food} /></span>
-                        <span style={{ fontSize: 11, color: cancel ? T.brick : T.green }}>
-                          {cancel ? "отменён" : `+${FEE} ₽`}
-                        </span>
-                      </span>
-                    </button>
-                    {isOpen && (
-                      <div className="px-4 pb-3.5" style={{ paddingLeft: 60 }}>
-                        <p style={{ fontSize: 11.5, color: T.inkSoft, lineHeight: 1.6 }}>{r.log}</p>
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        );
-      })}
-      <p style={{ fontSize: 12, color: T.inkSoft, lineHeight: 1.55 }}>
-        Заказ появляется в журнале в момент создания студентом. Кухня меняет только статус —
-        удалить строку нельзя, отмена всегда с причиной и возвратом.
-      </p>
-    </div>
-  );
-}
-
-/* ================================================================== */
-const WEEKS = [
-  ["1–7 сентября", 96, 38640],
-  ["8–14 сентября", 118, 47820],
-  ["15–21 сентября", 104, 41100],
-  ["22–30 сентября", 94, 40780],
-];
-
-function Report() {
-  const orders = WEEKS.reduce((a, w) => a + w[1], 0);
-  const food = WEEKS.reduce((a, w) => a + w[2], 0);
-  const fee = orders * FEE;
-  return (
-    <div className="px-5 pt-5 pb-10 mk-rise">
-      <div className="flex items-baseline justify-between">
-        <p style={{ fontFamily: DISPLAY, fontWeight: 500, fontSize: 15, color: T.ink }}>Сентябрь 2026</p>
-        <span style={{ fontSize: 12, color: T.inkSoft }}>период закрыт</span>
-      </div>
-
-      <div className="rounded-2xl mt-3 p-5" style={{ background: T.ink }}>
-        <p style={{ fontSize: 12, color: T.coral, fontWeight: 600, letterSpacing: 0.5 }}>СЕРВИСНЫЙ СБОР К ВЫПЛАТЕ</p>
-        <p style={{ fontFamily: DISPLAY, fontWeight: 600, fontSize: 34, color: "#FFF6F2", marginTop: 6 }}><Rub v={fee} /></p>
-        <p style={{ fontSize: 12.5, color: "rgba(255,246,242,.65)", marginTop: 4 }}>
-          {orders} выданных заказов × {FEE} ₽
-        </p>
-      </div>
-
-      <div className="rounded-2xl mt-3 p-4" style={{ background: T.surface, border: `1px solid ${T.line}` }}>
-        <div className="flex justify-between py-1.5" style={{ fontSize: 14, color: T.ink }}>
-          <span>Выручка кафе за еду</span>
-          <span style={{ fontFamily: DISPLAY, fontWeight: 500 }}><Rub v={food} /></span>
-        </div>
-        <div className="flex justify-between py-1.5" style={{ fontSize: 14, color: T.inkSoft }}>
-          <span>Отменено кухней</span><span>7 · сбор не начислен</span>
-        </div>
-        <div className="flex justify-between py-1.5" style={{ fontSize: 14, color: T.inkSoft }}>
-          <span>Средний чек</span><span><Rub v={Math.round(food / orders)} /></span>
-        </div>
-      </div>
-
-      <p style={{ fontFamily: DISPLAY, fontWeight: 500, fontSize: 14, color: T.ink, marginTop: 20 }}>По неделям</p>
-      <div className="rounded-2xl mt-2.5 p-4" style={{ background: T.surface, border: `1px solid ${T.line}` }}>
-        {WEEKS.map(([w, n, f]) => (
-          <div key={w} className="flex justify-between py-2" style={{ fontSize: 13.5, borderBottom: `1px solid ${T.line}` }}>
-            <span style={{ color: T.ink }}>{w}</span>
-            <span style={{ color: T.inkSoft }}>{n} зак. · <Rub v={f} /></span>
-          </div>
-        ))}
-        <div className="flex justify-between pt-3" style={{ fontFamily: DISPLAY, fontWeight: 500, fontSize: 15, color: T.ink }}>
-          <span>Итого</span><span>{orders} · <Rub v={food} /></span>
-        </div>
-      </div>
-
-      <button className="w-full rounded-xl mt-4 py-3.5"
-        style={{ background: T.terra, color: "#FFF8F4", fontWeight: 600, fontSize: 15 }}>
-        Выгрузить смету в PDF и Excel
-      </button>
-      <p style={{ fontSize: 11.5, color: T.inkSoft, marginTop: 10, lineHeight: 1.55, textAlign: "center" }}>
-        Один и тот же файл уходит тебе и управляющему. Цифра одна — спорить не о чем.
-      </p>
-    </div>
-  );
-}
-
-/* ================================================================== */
-function Kitchen() {
-  const [orders, setOrders] = useState(QUEUE);
-  const [filter, setFilter] = useState("all");
-  const [stops, setStops] = useState({ p4: true });
-  const [view, setView] = useState("live");
-
-  const advance = (num) =>
-    setOrders((o) => o.map((x) => (x.num === num ? { ...x, state: x.state === "new" ? "cooking" : "done" } : x)));
-
-  const shown = orders.filter((o) => filter === "all" || o.st === filter);
-
-  const Nav = (
-    <div className="flex gap-2 px-5 pt-5 overflow-x-auto mk-scroll">
-      {[["live", "Сейчас"], ["hist", "История"], ["rep", "Отчёт"]].map(([id, lbl]) => (
-        <button key={id} onClick={() => setView(id)} className="rounded-full px-4 py-2 flex-shrink-0"
-          style={{
-            background: view === id ? T.ink : "transparent", color: view === id ? T.bg : T.inkSoft,
-            border: `1px solid ${view === id ? T.ink : T.line}`, fontSize: 13.5,
-            fontWeight: view === id ? 500 : 400,
-          }}>{lbl}</button>
-      ))}
-    </div>
-  );
-
-  if (view === "hist") return <div className="mk-rise">{Nav}<History /></div>;
-  if (view === "rep") return <div className="mk-rise">{Nav}<Report /></div>;
-
-  return (
-    <div className="mk-rise pb-10">
-      {Nav}
-      <div className="px-5 pt-5">
-        <h2 style={{ fontFamily: DISPLAY, fontWeight: 500, fontSize: 21, color: T.ink }}>Заказы</h2>
-        <p style={{ fontSize: 13, color: T.inkSoft, marginTop: 5 }}>
-          {orders.filter((o) => o.state !== "done").length} активных · сегодня 18 400 ₽
-        </p>
-        <div className="flex gap-2 mt-3">
-          {[["all", "Все"], ["kitchen", "Кухня"], ["bar", "Бар"]].map(([id, lbl]) => (
-            <button key={id} onClick={() => setFilter(id)} className="rounded-full px-4 py-1.5"
-              style={{
-                background: filter === id ? T.terra : "transparent",
-                color: filter === id ? "#FFF8F4" : T.inkSoft,
-                border: `1px solid ${filter === id ? T.terra : T.line}`, fontSize: 13,
-              }}>{lbl}</button>
-          ))}
-        </div>
-      </div>
-
-      <div className="px-5 pt-4">
-        {shown.map((o) => {
-          const done = o.state === "done";
-          return (
-            <div key={o.num} className="rounded-2xl p-4 mb-3"
-              style={{
-                background: done ? "transparent" : T.surface,
-                border: `1px solid ${done ? T.line : o.state === "new" ? T.terra : T.line}`,
-                opacity: done ? 0.45 : 1,
-              }}>
-              <div className="flex items-start gap-3">
-                <div className="rounded-full flex items-center justify-center flex-shrink-0"
-                  style={{
-                    width: 46, height: 46, background: o.st === "bar" ? T.bar : T.brick,
-                    color: "#FFF6F2", fontFamily: DISPLAY, fontWeight: 600, fontSize: 17,
-                  }}>{o.num}</div>
-                <div className="flex-1">
-                  <div className="flex justify-between items-baseline gap-2">
-                    <span style={{ fontSize: 15.5, fontWeight: 500, color: T.ink }}>{o.who}</span>
-                    <span style={{ fontSize: 12.5, color: o.left < 6 ? T.brick : T.inkSoft, whiteSpace: "nowrap" }}>
-                      к {o.at} · {o.left} мин
-                    </span>
-                  </div>
-                  {o.items.map(([n, q]) => (
-                    <div key={n} style={{ fontSize: 14, color: T.ink, marginTop: 4 }}>{q} × {n}</div>
-                  ))}
-                </div>
-              </div>
-              {!done && (
-                <button onClick={() => advance(o.num)} className="w-full rounded-xl mt-3 py-2.5"
-                  style={{
-                    background: o.state === "new" ? T.ink : T.green,
-                    color: "#FBFAF8", fontSize: 14.5, fontWeight: 500,
-                  }}>
-                  {o.state === "new" ? "Взять в работу" : "Готово — позвать"}
-                </button>
-              )}
-            </div>
-          );
-        })}
-      </div>
-
-      <div className="px-5 pt-3">
-        <p style={{ fontFamily: DISPLAY, fontWeight: 500, fontSize: 15, color: T.ink }}>Загрузка кухни в обед</p>
-        <p style={{ fontSize: 12.5, color: T.inkSoft, marginTop: 4 }}>
-          Пики 11:55–12:20 и 13:30–13:50 режутся на окна по 15 минут.
-        </p>
-        <div className="mt-3 rounded-2xl p-4" style={{ background: T.surface, border: `1px solid ${T.line}` }}>
-          {LUNCH.map((s) => {
-            const n = s.kCap - s.kTaken;
-            const pct = Math.min(100, (s.kTaken / s.kCap) * 100);
-            const hot = n <= 4;
-            return (
-              <div key={s.t} className="py-1.5">
-                <div className="flex justify-between items-baseline gap-2" style={{ fontSize: 12.5 }}>
-                  <span style={{ fontFamily: DISPLAY, fontWeight: 500, color: T.ink }}>
-                    {s.t}{s.peak && <span style={{ fontFamily: SANS, color: T.brick, fontSize: 10, marginLeft: 5 }}>ПИК</span>}
-                  </span>
-                  <span style={{ color: hot ? T.brick : T.inkSoft, fontWeight: hot ? 600 : 400 }}>
-                    {s.kTaken} / {s.kCap}{n <= 0 ? " · закрыто" : ""}
-                  </span>
-                </div>
-                <div style={{ height: 4, background: T.line, borderRadius: 3, marginTop: 4 }}>
-                  <div style={{ height: 4, width: `${pct}%`, background: hot ? T.brick : T.terra, borderRadius: 3 }} />
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
-      <div className="px-5 pt-6">
-        <p style={{ fontFamily: DISPLAY, fontWeight: 500, fontSize: 15, color: T.ink }}>Стоп-лист</p>
-        <p style={{ fontSize: 12.5, color: T.inkSoft, marginTop: 4 }}>Выключенное сразу пропадает у студентов.</p>
-        <div className="mt-3">
-          {ALL.slice(10, 16).map((it) => {
-            const off = !!stops[it.id];
-            return (
-              <button key={it.id} onClick={() => setStops((s) => ({ ...s, [it.id]: !off }))}
-                className="w-full flex items-center justify-between py-3 gap-3"
-                style={{ borderBottom: `1px solid ${T.line}` }}>
-                <span style={{ fontSize: 14.5, color: off ? T.inkSoft : T.ink, textAlign: "left" }}>{it.name}</span>
-                <span className="rounded-full flex items-center flex-shrink-0"
-                  style={{
-                    width: 44, height: 26, background: off ? T.line : T.green, padding: 3,
-                    justifyContent: off ? "flex-start" : "flex-end",
-                  }}>
-                  <span className="rounded-full" style={{ width: 20, height: 20, background: "#FBFAF8" }} />
-                </span>
-              </button>
-            );
-          })}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* ================================================================== */
-function App() {
-  const [role, setRole] = useState("student");
-  const [tab, setTab] = useState("home");
-  const [openCat, setOpenCat] = useState("Кофе");
-  const [cart, setCart] = useState({});
-  const [mode, setMode] = useState("now");
-  const [slot, setSlot] = useState("12:40");
-
-  const add = (id) => setCart((c) => ({ ...c, [id]: (c[id] || 0) + 1 }));
-  const remove = (id) =>
-    setCart((c) => {
-      const n = (c[id] || 0) - 1;
-      const next = { ...c };
-      if (n <= 0) delete next[id]; else next[id] = n;
-      return next;
-    });
-
-  const count = useMemo(() => Object.values(cart).reduce((a, b) => a + b, 0), [cart]);
-  const sum = useMemo(() => Object.entries(cart).reduce((a, [id, q]) => a + byId(id).price * q, 0), [cart]);
-
-  const go = (t, cat) => { if (cat) setOpenCat(cat); setTab(t); };
-  const repeat = () => { setCart(LAST_ORDER); setTab("cart"); };
-
-  const TABS = [
-    { id: "home", label: "Главная", icon: "home" },
-    { id: "menu", label: "Меню", icon: "menu" },
-    { id: "cart", label: "Заказ", icon: "bag" },
-  ];
-
-  return (
-    <div className="w-full flex justify-center" style={{
-      background: IN_TG ? T.bg : "#D9D5CF",
-      minHeight: "100vh", fontFamily: SANS, padding: IN_TG ? 0 : "24px 0",
-    }}>
-      <Fonts />
-      <div className="w-full" style={{ maxWidth: IN_TG ? "none" : 400 }}>
-        {!IN_TG && (
-          <div className="flex gap-2 px-5 pb-3">
-            {[["student", "Студент"], ["intro", "Первый вход"], ["admin", "Кухня"]].map(([r, lbl]) => (
-              <button key={r} onClick={() => { setRole(r); setTab("home"); setCart({}); }}
-                className="rounded-full px-3.5 py-1.5"
-                style={{
-                  background: role === r ? T.ink : "transparent",
-                  color: role === r ? T.bg : T.ink,
-                  border: `1px solid ${role === r ? T.ink : "rgba(43,36,34,.25)"}`,
-                  fontSize: 12.5,
-                }}>{lbl}</button>
-            ))}
-          </div>
-        )}
-
-        <div className={IN_TG ? "overflow-hidden" : "rounded-2xl overflow-hidden"}
-             style={{ background: T.bg, boxShadow: IN_TG ? "none" : "0 18px 40px rgba(43,36,34,.2)" }}>
-          <div className="px-5 py-3.5 flex items-center justify-between" style={{ background: T.ink }}>
-            <div>
-              <div style={{ fontFamily: DISPLAY, fontWeight: 600, fontSize: 17, color: T.terra, lineHeight: 1 }}>МОНТЕ</div>
-              <div style={{ fontSize: 8.5, color: T.coral, letterSpacing: 3, marginTop: 3 }}>КАФЕ</div>
-            </div>
-            <span style={{ fontSize: 11.5, color: "rgba(239,236,231,.55)" }}>МГИМО · корпус А</span>
-          </div>
-
-          <div style={{ minHeight: 580 }}>
-            {role === "admin" ? <Kitchen />
-              : role === "intro" ? <Welcome start={() => { setRole("student"); setTab("menu"); }} />
-              : tab === "home" ? <Home go={go} repeat={repeat} mode={mode} setMode={setMode} slot={slot} setSlot={setSlot} />
-              : tab === "menu" ? <Menu cart={cart} add={add} remove={remove} openCat={openCat} setOpenCat={setOpenCat} />
-              : tab === "cart" ? <Cart cart={cart} add={add} remove={remove} mode={mode} setMode={setMode} slot={slot} setSlot={setSlot} pay={() => setTab("ticket")} />
-              : <Ticket mode={mode} slot={slot} back={() => { setCart({}); setTab("home"); }} />}
-          </div>
-
-          {role === "student" && tab !== "ticket" && (
-            <div>
-              {count > 0 && tab !== "cart" && (
-                <button onClick={() => setTab("cart")} className="w-full flex items-center justify-between px-5 py-3.5"
-                  style={{ background: T.terra, color: "#FFF8F4" }}>
-                  <span style={{ fontSize: 14.5, fontWeight: 600 }}>Перейти к заказу · {count}</span>
-                  <span style={{ fontFamily: DISPLAY, fontWeight: 600, fontSize: 15 }}><Rub v={sum + FEE} /></span>
-                </button>
-              )}
-              <nav className="flex" style={{ background: T.ink }}>
-                {TABS.map((t) => {
-                  const on = tab === t.id;
-                  const col = on ? T.terra : "rgba(239,236,231,.55)";
-                  return (
-                    <button key={t.id} onClick={() => setTab(t.id)} aria-current={on ? "page" : undefined}
-                      className="flex-1 flex flex-col items-center justify-center gap-1"
-                      style={{ height: 66, position: "relative" }}>
-                      <span style={{ position: "relative", display: "block" }}>
-                        <Ico name={t.icon} c={col} />
-                        {t.id === "cart" && count > 0 && (
-                          <span className="rounded-full flex items-center justify-center"
-                            style={{
-                              position: "absolute", top: -5, right: -8, minWidth: 18, height: 18,
-                              padding: "0 5px", background: T.terra, color: "#FFF8F4", fontSize: 11, fontWeight: 700,
-                            }}>{count}</span>
-                        )}
-                      </span>
-                      <span style={{ fontSize: 11.5, color: on ? "#FFF8F4" : "rgba(239,236,231,.55)", fontWeight: on ? 600 : 400 }}>
-                        {t.label}
-                      </span>
-                      {on && <span style={{ position: "absolute", top: 0, left: "22%", right: "22%", height: 2.5, background: T.terra }} />}
-                    </button>
-                  );
-                })}
-              </nav>
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-
-ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+render();
+})();
 </script>
 </body>
 </html>
